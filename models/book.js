@@ -2,6 +2,15 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { ObjectId } = Schema;
 
+// Create a chapter schema (insert into book schema)
+const chapterSchema = new Schema({
+    title: { type: String, required: false },
+    authorNote: { type: String, required: false },
+    textContents: { type: String, required: true }
+});
+
+//const chapterModel = mongoose.model('chapters', chapterSchema);
+
 // Create a book schema
 const bookSchema = new Schema({
     title: { type: String, required: true, trim: true },
@@ -19,7 +28,7 @@ const bookSchema = new Schema({
     dateUpdated: { type: Date, required: true },
     likes: { type: Number, required: true },
     views: { type: Number, required: true },
-    chapters: [ObjectId]
+    chapters: [chapterSchema]
 });
 
 const bookModel = new mongoose.model('books', bookSchema);
