@@ -14,9 +14,18 @@ const userRoutes = require('./routes/userRoutes');
 // MONGOOSE
 const { mongoose } = require('mongoose');
 const userModel = require('./models/user.js');
-const uri = "mongodb://localhost:27017/library";
-mongoose.connect(uri);
-console.log(`Connected to the database at ${uri}`);
+const dbURL = "mongodb+srv://"+ process.env.DB_UNAME + ":"+ process.env.DB_PWD + "@book-club.stftns5.mongodb.net/library?retryWrites=true&w=majority";
+const connectionParams = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+};
+mongoose.connect(dbURL, connectionParams)
+  .then(() => {
+    console.log(`Connected to the database at ${dbURL}`);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 // Fix CORS errors
 app.use(cors());
