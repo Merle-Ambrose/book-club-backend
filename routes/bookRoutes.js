@@ -26,13 +26,12 @@ async function userOwnsBook(userId, bookId) {
 // Find a specific book
 async function getBook(id) {
     return await bookModel.findById(id);
-    //return await bookModel.findOne({ title: 'Lord of the Rings: Rewritten' });
 }
 
 // Find a specific chapter in a book and display the info about it
 async function getBookChapter(bookId, chapterIndex, isReading) {
     let book = await bookModel.findById(bookId);
-    
+
     // Update how many users viewed this book
     // (if the user is reading and not writing to the book)
     if(isReading) {

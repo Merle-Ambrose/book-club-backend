@@ -98,5 +98,5 @@ app.post("/register", (req, res) => {
 // ============= ROUTES END =============
 
 app.listen(port, () => {
-  console.log('server up');
+  console.log(`Server up on port ${port}.`);
 });
