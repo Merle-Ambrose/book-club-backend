@@ -6,7 +6,7 @@ const { ObjectId } = Schema;
 const chapterSchema = new Schema({
     title: { type: String, required: false },
     authorNote: { type: String, required: false },
-    textContents: { type: String, required: true }
+    textContents: { type: String, required: false }
 });
 
 //const chapterModel = mongoose.model('chapters', chapterSchema);
@@ -15,8 +15,7 @@ const chapterSchema = new Schema({
 const bookSchema = new Schema({
     title: { type: String, required: true, trim: true },
     author: { type: ObjectId, required: true },
-    summmary: { type: String, required: true, trim: true },
-    rating: { type: String, required: false },
+    summary: { type: String, default: '', trim: true },
     tws: [String],
     genre: { type: String, required: false },
     fandoms: [String],
@@ -24,10 +23,9 @@ const bookSchema = new Schema({
     tags: [String],
     language: { type: String, required: false },
     wordcount: { type: Number, required: true },
-    datePublished: { type: Date, required: true },
-    dateUpdated: { type: Date, required: true },
-    likes: { type: Number, required: true },
-    views: { type: Number, required: true },
+    datePublished: { type: Date, required: true, default: Date.now() },
+    dateUpdated: { type: Date, required: true, default: Date.now() },
+    views: { type: Number, required: true, default: 0 },
     chapters: [chapterSchema]
 });
 
