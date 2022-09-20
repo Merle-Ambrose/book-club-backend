@@ -3,14 +3,15 @@ require('dotenv').config()
 const port = process.env.PORT || 9000;
 const jwt = require('jsonwebtoken');
 const express = require('express');
-const router = require('');
 const cors = require('cors');
 const app = express();
+// IMPORT ROUTERS
+const bookRoutes = require('./routes/bookRoutes');
+const userRoutes = require('./routes/userRoutes');
 // MONGOOSE
 const { mongoose } = require('mongoose');
 const userModel = require('./models/user.js');
 const bookModel = require('./models/book.js');
-const bookmarkModel = require('./models/bookmark.js');
 const uri = "mongodb://localhost:27017/library";
 mongoose.connect(uri);
 console.log(`Connected to the database at ${uri}`);
@@ -146,16 +147,16 @@ async function getBookChapter(bookId, chapterIndex) {
 async function getFilteredBooks(query) {
   let limit = query.numberPerPage;
   let currPage = query.currPage;
-  if(currPage < 0) currPage = 0;
+  if (currPage < 0) currPage = 0;
   let skip = currPage * limit;
   delete query.currPage;
   delete query.numberPerPage;
   let sort = {};
-  if(query.views) {
+  if (query.views) {
     sort.views = query.views;
     delete query.views;
   };
-  if(query.wordcount) {
+  if (query.wordcount) {
     sort.wordcount = query.wordcount;
     delete query.wordcount;
   };
@@ -315,279 +316,12 @@ function generateAccessToken(userId) {
 
 // ============= TOKEN AUTHENTICATION END =============
 
-// Read a specific book
-app.get("/book/:id", (req, res) => {
-  getBook(req.params.id)
-    .then((result) => {
-      res.send(result);
-    }).catch((err) => {
-      console.log("error sending book data");
-      res.status(500).send(err);
-    });
-});
 
-// Pagination of books (get specific books w/ filters)
-app.get("/book/filter/:genre/:language/:views/:wordcount/:numberPerPage/:currPage", (req, res) => {
-  let query = {};
-  if(req.params.genre.trim()) query.genre = req.params.genre;
-  if(req.params.language.trim()) query.language = req.params.language;
-  if(req.params.views.trim()) query.views = req.params.views;
-  if(req.params.wordcount.trim()) query.wordcount = req.params.wordcount;
-  if(req.params.numberPerPage.trim()) query.numberPerPage = req.params.numberPerPage;
-  if(req.params.currPage.trim()) query.currPage = req.params.currPage;
-  getFilteredBooks(query)
-    .then((result) => {
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
+// 'book' routes
+app.use('/book', bookRoutes);
 
-// Create book
-app.post("/book/create", authenticateToken, (req, res) => {
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      if (result) {
-        createBook(req.body.title, req.userId.userId, req.body.summary, req.body.tws, req.body.genre, req.body.fandoms, req.body.characters, req.body.tags, req.body.language)
-          .then((result) => {
-            res.send({ bookId: result });
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500);
-          });
-      }
-      else {
-        res.status(403);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
-
-// Update book
-app.put("/book/update", authenticateToken, (req, res) => {
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      if (result) {
-        updateBook(req.body.bookId, req.body.title, req.userId.userId, req.body.summary, req.body.tws, req.body.genre, req.body.fandoms, req.body.characters, req.body.tags, req.body.language)
-          .then((result) => {
-            res.send({ bookId: result });
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500);
-          });
-      }
-      else
-        res.status(403);
-    }
-    )
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
-
-// Delete book
-app.post("/book/delete", authenticateToken, (req, res) => {
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      if (result) {
-        deleteBook(req.userId.userId, req.body.bookId)
-          .then((result) => {
-            res.status(200);
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500);
-          });
-      }
-      else {
-        console.log("This user doesn't have access");
-        res.status(403);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
-
-
-// Delete chapter
-app.post("/book/chapter/delete", authenticateToken, (req, res) => {
-  console.log("deleted chapter");
-  console.log(req.userId.userId);
-  console.log(req.body.bookId);
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      console.log(result);
-      if (result) {
-        deleteChapter(req.body.bookId, req.body.chapterIndex)
-          .then((result) => {
-            console.log(result);
-            res.status(200);
-            res.end();
-          })
-          .catch((err) => {
-            console.log(err);
-            res.status(500);
-            res.end();
-          });
-      }
-      else {
-        res.status(403);
-        res.end();
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-      res.end();
-    });
-});
-
-app.post("/book/chapter/createEmpty", authenticateToken, (req, res) => {
-  console.log(`Creating empty chapter in ${req.body.bookId}`);
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      if (result) {
-        createEmptyChapter(req.body.bookId)
-          .then((result) => {
-            console.log(`Added chapter for book ${req.body.bookId}`);
-            res.end();
-          })
-          .catch((err) => {
-            res.status(500);
-          });
-      }
-      else {
-        res.status(403);
-      }
-    })
-    .catch((err) => {
-      console.log("error getting user data");
-      console.log(err);
-      res.status(500);
-    });
-});
-
-app.put("/book/chapter/update", authenticateToken, (req, res) => {
-  userOwnsBook(req.userId.userId, req.body.bookId)
-    .then((result) => {
-      if (result) {
-        updateChapter(req.body.bookId, req.body.chapterId, req.body.title, req.body.authorNote, req.body.textContents)
-          .then((result) => {
-            console.log(`Updated chapter: ${req.body.chapterId} for book ${req.body.bookId}`);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-      else {
-        res.status(403);
-      }
-    })
-    .catch((err) => {
-      console.log("error getting user data");
-      res.status(500).send(err);
-    });
-});
-
-app.get("/book/:bookId/chapter/:chapIndex", (req, res) => {
-  console.log(`Reading the book ${req.params.bookId} at chapter ${req.params.chapIndex}`);
-
-  getBookChapter(req.params.bookId, req.params.chapIndex)
-    .then((result) => {
-      res.json(result);
-    })
-    .catch((err) => {
-      console.log("error sending book/chapter data");
-      res.status(500).send(err);
-    });
-});
-
-// Check if user owns a specific book
-app.get("/user/owns/:bookId/:userId", (req, res) => {
-  console.log(`Checking if user ${req.params.userId} owns ${req.params.bookId}`);
-
-  userOwnsBook(req.params.userId, req.params.bookId)
-    .then((result) => {
-      res.json({
-        authorized: result
-      });
-    })
-    .catch((err) => {
-      console.log("error getting user data");
-      res.status(500).send(err);
-    });
-});
-
-// Get all of a user's books they've written
-app.get("/user/getAllBooks", authenticateToken, (req, res) => {
-  getAllUserBooks(req.userId.userId)
-    .then((result) => {
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log("Error sending book data");
-      console.log(err);
-      res.status(500).send(err);
-    });
-});
-
-app.get("/user/find/:uname", (req, res) => {
-  console.log("Finding user: " + req.params.uname);
-  userExists(req.params.uname)
-    .then((result) => {
-      res.json({ isUnique: result });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.json({ isUnique: false });
-    });
-});
-
-app.get("/user/get", authenticateToken, (req, res) => {
-  getAllUserInfo(req.userId.userId)
-    .then((result) => {
-      result.pwd = "";
-      res.send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
-
-app.post("/user/update", authenticateToken, (req, res) => {
-  updateUser(req.userId.userId, req.body.email, req.body.pwd, req.body.fname, req.body.lname, req.body.byear)
-    .then((result) => {
-      console.log(result);
-      res.status(200);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
-
-app.post("/user/updateNotPwd", authenticateToken, (req, res) => {
-  updateUserNotPwd(req.userId.userId, req.body.email, req.body.fname, req.body.lname, req.body.byear)
-    .then((result) => {
-      console.log(result);
-      res.status(200);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500);
-    });
-});
+// 'user' routes
+app.use('/user', userRoutes);
 
 app.post("/login", (req, res) => {
   // Authenticate user
