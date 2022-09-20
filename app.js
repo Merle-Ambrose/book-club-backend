@@ -1,3 +1,6 @@
+/*
+  AUTHOR: Polina Tikhomirova
+*/
 // EXPRESS
 require('dotenv').config();
 const port = process.env.PORT || 9000;
