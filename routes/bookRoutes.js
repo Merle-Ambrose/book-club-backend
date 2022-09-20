@@ -1,11 +1,10 @@
 // EXPRESS
 const express = require('express');
-const userModel = require('./models/user.js');
-const bookModel = require('./models/book.js');
 const router = express.Router();
 // MONGOOSE
-const userModel = require('./models/user.js');
-const bookModel = require('./models/book.js');
+const userModel = require('../models/user.js');
+const bookModel = require('../models/book.js');
+const authenticateToken = require('../utils/authentication');
 
 // ============= DATABASE OPERATIONS START =============
 
@@ -31,12 +30,16 @@ async function getBook(id) {
 }
 
 // Find a specific chapter in a book and display the info about it
-async function getBookChapter(bookId, chapterIndex) {
-    // Update how many users viewed this book
+async function getBookChapter(bookId, chapterIndex, isReading) {
     let book = await bookModel.findById(bookId);
-    await bookModel.updateOne({ _id: bookId }, {
-        views: book.views + 1
-    });
+    
+    // Update how many users viewed this book
+    // (if the user is reading and not writing to the book)
+    if(isReading) {
+        await bookModel.updateOne({ _id: bookId }, {
+            views: book.views + 1
+        });
+    }
 
     // Get chapter information to display to user
     try {
@@ -187,26 +190,9 @@ async function createEmptyChapter(bookId) {
     });
 }
 
-// Create a chapter with already filled-in info
-async function createChapter(bookId, title, authorNote, textContents) {
-    await bookModel.findById(bookId).chapters.push({
-        title: title,
-        authorNote: authorNote,
-        textContents: textContents
-    });
-    await bookModel.save((err) => {
-        console.log(err);
-    });
-}
-
 // Get/read book document
 async function getBook(bookId) {
     return await bookModel.findById(bookId);
-}
-
-// Get all of a user's books they've ever written
-async function getAllUserBooks(userId) {
-    return (await userModel.findById(userId)).booksWritten;
 }
 
 /* BOOK OPERATIONS END */
@@ -387,10 +373,12 @@ router.put("/chapter/update", authenticateToken, (req, res) => {
         });
 });
 
-router.get("/:bookId/chapter/:chapIndex", (req, res) => {
+router.get("/:bookId/chapter/:chapIndex/:isReading", (req, res) => {
     console.log(`Reading the book ${req.params.bookId} at chapter ${req.params.chapIndex}`);
 
-    getBookChapter(req.params.bookId, req.params.chapIndex)
+    let isReading = true;
+    if(req.params.isReading === 'false') isReading = false;
+    getBookChapter(req.params.bookId, req.params.chapIndex, isReading)
         .then((result) => {
             res.json(result);
         })
