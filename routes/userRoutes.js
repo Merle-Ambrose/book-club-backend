@@ -72,8 +72,6 @@ async function getAllUserBooks(userId) {
 
 // Check if user owns a specific book
 router.get("/owns/:bookId/:userId", (req, res) => {
-    console.log(`Checking if user ${req.params.userId} owns ${req.params.bookId}`);
-
     userOwnsBook(req.params.userId, req.params.bookId)
         .then((result) => {
             res.json({
@@ -100,7 +98,6 @@ router.get("/getAllBooks", authenticateToken, (req, res) => {
 });
 
 router.get("/find/:uname", (req, res) => {
-    console.log("Finding user: " + req.params.uname);
     userExists(req.params.uname)
         .then((result) => {
             res.json({ isUnique: result });
@@ -126,7 +123,6 @@ router.get("/get", authenticateToken, (req, res) => {
 router.post("/update", authenticateToken, (req, res) => {
     updateUser(req.userId.userId, req.body.email, req.body.pwd, req.body.fname, req.body.lname, req.body.byear)
         .then((result) => {
-            console.log(result);
             res.status(200);
         })
         .catch((err) => {
@@ -138,7 +134,6 @@ router.post("/update", authenticateToken, (req, res) => {
 router.post("/updateNotPwd", authenticateToken, (req, res) => {
     updateUserNotPwd(req.userId.userId, req.body.email, req.body.fname, req.body.lname, req.body.byear)
         .then((result) => {
-            console.log(result);
             res.status(200);
         })
         .catch((err) => {

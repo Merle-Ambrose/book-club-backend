@@ -148,7 +148,6 @@ async function deleteBook(userId, bookId) {
 async function deleteChapter(bookId, chapterIndex) {
     let book = await bookModel.findById(bookId);
     book.chapters.splice(chapterIndex, 1);
-    console.log(book.chapters);
     await book.save((err) => {
         console.log(err);
     });
@@ -220,21 +219,9 @@ router.get("/filter/:genre/:language/:views/:wordcount/:numberPerPage/:currPage"
 
 // Create book
 router.post("/create", authenticateToken, (req, res) => {
-    userOwnsBook(req.userId.userId, req.body.bookId)
+    createBook(req.body.title, req.userId.userId, req.body.summary, req.body.tws, req.body.genre, req.body.fandoms, req.body.characters, req.body.tags, req.body.language)
         .then((result) => {
-            if (result) {
-                createBook(req.body.title, req.userId.userId, req.body.summary, req.body.tws, req.body.genre, req.body.fandoms, req.body.characters, req.body.tags, req.body.language)
-                    .then((result) => {
-                        res.send({ bookId: result });
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        res.status(500);
-                    });
-            }
-            else {
-                res.status(403);
-            }
+            res.send({ bookId: result });
         })
         .catch((err) => {
             console.log(err);
@@ -294,16 +281,11 @@ router.post("/delete", authenticateToken, (req, res) => {
 
 // Delete chapter
 router.post("/chapter/delete", authenticateToken, (req, res) => {
-    console.log("deleted chapter");
-    console.log(req.userId.userId);
-    console.log(req.body.bookId);
     userOwnsBook(req.userId.userId, req.body.bookId)
         .then((result) => {
-            console.log(result);
             if (result) {
                 deleteChapter(req.body.bookId, req.body.chapterIndex)
                     .then((result) => {
-                        console.log(result);
                         res.status(200);
                         res.end();
                     })
@@ -326,14 +308,12 @@ router.post("/chapter/delete", authenticateToken, (req, res) => {
 });
 
 router.post("/chapter/createEmpty", authenticateToken, (req, res) => {
-    console.log(`Creating empty chapter in ${req.body.bookId}`);
     userOwnsBook(req.userId.userId, req.body.bookId)
         .then((result) => {
             if (result) {
                 createEmptyChapter(req.body.bookId)
                     .then((result) => {
-                        console.log(`Added chapter for book ${req.body.bookId}`);
-                        res.end();
+                        res.status(200);
                     })
                     .catch((err) => {
                         res.status(500);
@@ -356,10 +336,10 @@ router.put("/chapter/update", authenticateToken, (req, res) => {
             if (result) {
                 updateChapter(req.body.bookId, req.body.chapterId, req.body.title, req.body.authorNote, req.body.textContents)
                     .then((result) => {
-                        console.log(`Updated chapter: ${req.body.chapterId} for book ${req.body.bookId}`);
+                        res.status(200);
                     })
                     .catch((err) => {
-                        console.log(err);
+                        res.status(500);
                     });
             }
             else {
@@ -373,8 +353,6 @@ router.put("/chapter/update", authenticateToken, (req, res) => {
 });
 
 router.get("/:bookId/chapter/:chapIndex/:isReading", (req, res) => {
-    console.log(`Reading the book ${req.params.bookId} at chapter ${req.params.chapIndex}`);
-
     let isReading = true;
     if(req.params.isReading === 'false') isReading = false;
     getBookChapter(req.params.bookId, req.params.chapIndex, isReading)
