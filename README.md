@@ -1,7 +1,7 @@
 # Book Website
 
 ### Technologies used:
-ReactJS, ExpressJS, NodeJS, MongoDB, HTML/CSS/JS
+ExpressJS, NodeJS, MongoDB
 
 ### Description:
 This is the server/backend part of the book website.
