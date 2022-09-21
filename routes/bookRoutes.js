@@ -214,6 +214,7 @@ router.get("/filter/:genre/:language/:views/:wordcount/:numberPerPage/:currPage"
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -226,6 +227,7 @@ router.post("/create", authenticateToken, (req, res) => {
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -241,15 +243,18 @@ router.put("/update", authenticateToken, (req, res) => {
                     .catch((err) => {
                         console.log(err);
                         res.status(500);
+                        res.end();
                     });
             }
             else
                 res.status(403);
+                res.end();
         }
         )
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -261,20 +266,24 @@ router.post("/delete", authenticateToken, (req, res) => {
                 deleteBook(req.userId.userId, req.body.bookId)
                     .then((result) => {
                         res.status(200);
+                        res.end();
                     })
                     .catch((err) => {
                         console.log(err);
                         res.status(500);
+                        res.end();
                     });
             }
             else {
                 console.log("This user doesn't have access");
                 res.status(403);
+                res.end();
             }
         })
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -314,19 +323,23 @@ router.post("/chapter/createEmpty", authenticateToken, (req, res) => {
                 createEmptyChapter(req.body.bookId)
                     .then((result) => {
                         res.status(200);
+                        res.end();
                     })
                     .catch((err) => {
                         res.status(500);
+                        res.end();
                     });
             }
             else {
                 res.status(403);
+                res.end();
             }
         })
         .catch((err) => {
             console.log("error getting user data");
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -337,18 +350,22 @@ router.put("/chapter/update", authenticateToken, (req, res) => {
                 updateChapter(req.body.bookId, req.body.chapterId, req.body.title, req.body.authorNote, req.body.textContents)
                     .then((result) => {
                         res.status(200);
+                        res.end();
                     })
                     .catch((err) => {
                         res.status(500);
+                        res.end();
                     });
             }
             else {
                 res.status(403);
+                res.end();
             }
         })
         .catch((err) => {
             console.log("error getting user data");
-            res.status(500).send(err);
+            res.status(500);
+            res.end();
         });
 });
 
@@ -361,7 +378,8 @@ router.get("/:bookId/chapter/:chapIndex/:isReading", (req, res) => {
         })
         .catch((err) => {
             console.log("error sending book/chapter data");
-            res.status(500).send(err);
+            res.status(500);
+            res.end();
         });
 });
 
@@ -372,7 +390,8 @@ router.get("/:id", (req, res) => {
             res.send(result);
         }).catch((err) => {
             console.log("error sending book data");
-            res.status(500).send(err);
+            res.status(500);
+            res.end();
         });
 });
 

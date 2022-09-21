@@ -80,7 +80,8 @@ router.get("/owns/:bookId/:userId", (req, res) => {
         })
         .catch((err) => {
             console.log("error getting user data");
-            res.status(500).send(err);
+            res.status(500);
+            res.end();
         });
 });
 
@@ -93,7 +94,8 @@ router.get("/getAllBooks", authenticateToken, (req, res) => {
         .catch((err) => {
             console.log("Error sending book data");
             console.log(err);
-            res.status(500).send(err);
+            res.status(500);
+            res.end();
         });
 });
 
@@ -117,6 +119,7 @@ router.get("/get", authenticateToken, (req, res) => {
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -124,10 +127,12 @@ router.post("/update", authenticateToken, (req, res) => {
     updateUser(req.userId.userId, req.body.email, req.body.pwd, req.body.fname, req.body.lname, req.body.byear)
         .then((result) => {
             res.status(200);
+            res.end();
         })
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
@@ -135,10 +140,12 @@ router.post("/updateNotPwd", authenticateToken, (req, res) => {
     updateUserNotPwd(req.userId.userId, req.body.email, req.body.fname, req.body.lname, req.body.byear)
         .then((result) => {
             res.status(200);
+            res.end();
         })
         .catch((err) => {
             console.log(err);
             res.status(500);
+            res.end();
         });
 });
 
